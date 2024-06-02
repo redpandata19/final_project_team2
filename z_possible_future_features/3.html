@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Native Country Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="js/script3.js"></script> <!-- Include your script3.js file -->
+    <style>
+        #map {
+            height: 600px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Native Country Map</h1>
+    <div id="map"></div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Create map
+            var map = L.map('map').setView([20, 0], 2);
+        
+            // Add OpenStreetMap tiles as the base layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+        
+            // Fetch data from the server and then the GeoJSON for each country
+            fetch('/data')
+                .then(response => response.json())
+                .then(data => {
+                    data.countries.forEach(country => {
+                        fetch(`/country_geojson/${country}`)
+                            .then(response => response.json())
+                            .then(geojsonData => {
+                                // Add the GeoJSON layer with style and onEachFeature
+                                L.geoJson(geojsonData, {
+                                    style: style,
+                                    onEachFeature: onEachFeature
+                                }).addTo(map);
+                            })
+                            .catch(error => console.error(`Error fetching GeoJSON for ${country}:`, error)); // Log error for specific country
+                    });
+                })
+                .catch(error => console.error('Error fetching data:', error)); // Log error for fetching data
+        });
+    </script>
+</body>
+</html>
