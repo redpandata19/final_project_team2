@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction of an Individual's Income</title>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Lato:400,300,700,900" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .btn-primary {
+            background-color: #70b9b0;
+            border-color: #70b9b0;
+        }
+        .btn-primary:hover, .btn-primary:focus {
+            background-color: #5aa298;
+            border-color: #5aa298;
+        }
+        .btn-secondary {
+            background-color: #e0f2f1;
+            border-color: #e0f2f1;
+            color: #333;
+        }
+        .btn-secondary:hover, .btn-secondary:focus {
+            background-color: #b2dfdb;
+            border-color: #b2dfdb;
+        }
+        .prediction-result {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .chart-container {
+            margin-top: 50px;
+        }
+        .chart {
+            display: inline-block;
+            width: 30%;
+            height: 300px;
+            margin: 10px;
+        }
+        .embed-container {
+            position: relative;
+        }
+        .embed-container .tableauPlaceholder {
+            position: relative;
+            z-index: 1;
+        }
+        .embed-container #viz1717448309079 {
+            position: absolute;
+            top: 75%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <header id="header" class="fixed-top d-flex align-items-center">
+        <div class="container d-flex align-items-center">
+            <div class="logo me-auto">
+                <h1><a href="/">Income Prediction</a></h1>
+            </div>
+        </div>
+    </header>
+    <section id="hero">
+        <div class="hero-container">
+            <h1>Prediction of an Individual's Income Analysis Dashboard</h1>
+            <h2>Use the interactive application and visuals to explore the dataset!</h2>
+        </div>
+    </section>
+    <main id="main">
+        <section id="about" class="about">
+            <div class="container">
+                <div class="section-title">
+                    <h2>Income Prediction Form</h2>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <form action="/predict#data" method="post">
+                            <div id="data">
+                                <h2>Form</h2>
+                                <div class="mb-3">
+                                    <label for="ageInput">Age</label>
+                                    <input type="number" id="ageInput" name="age" class="form-control" min="17" max="90" value="{{ request.form.age or '' }}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="genderFilter">Gender</label>
+                                    <select id="genderFilter" name="gender" class="form-control" required>
+                                        <option value="" {% if not request.form.gender %}selected{% endif %}>Select Gender</option>
+                                        <option value="Male" {% if request.form.gender == "Male" %}selected{% endif %}>Male</option>
+                                        <option value="Female" {% if request.form.gender == "Female" %}selected{% endif %}>Female</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="raceFilter">Race</label>
+                                    <select id="raceFilter" name="race" class="form-control" required>
+                                        <option value="" {% if not request.form.race %}selected{% endif %}>Select Race</option>
+                                        <option value="White" {% if request.form.race == "White" %}selected{% endif %}>White</option>
+                                        <option value="Black" {% if request.form.race == "Black" %}selected{% endif %}>Black</option>
+                                        <option value="Asian-Pac-Islander" {% if request.form.race == "Asian-Pac-Islander" %}selected{% endif %}>Asian</option>
+                                        <option value="Amer-Indian-Eskimo" {% if request.form.race == "Amer-Indian-Eskimo" %}selected{% endif %}>Native American</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="educationFilter">Highest Education Level</label>
+                                    <select id="educationFilter" name="education" class="form-control" required>
+                                        <option value="" {% if not request.form.education %}selected{% endif %}>Select Education</option>
+                                        <option value="Preschool" {% if request.form.education == "Preschool" %}selected{% endif %}>Preschool</option>
+                                        <option value="1st-4th" {% if request.form.education == "1st-4th" %}selected{% endif %}>1st-4th Grade</option>
+                                        <option value="5th-6th" {% if request.form.education == "5th-6th" %}selected{% endif %}>5th-6th Grade</option>
+                                        <option value="7th-8th" {% if request.form.education == "7th-8th" %}selected{% endif %}>7th-8th Grade</option>
+                                        <option value="9th" {% if request.form.education == "9th" %}selected{% endif %}>9th Grade High School</option>
+                                        <option value="10th" {% if request.form.education == "10th" %}selected{% endif %}>10th Grade High School</option>
+                                        <option value="11th" {% if request.form.education == "11th" %}selected{% endif %}>11th Grade High School</option>
+                                        <option value="12th" {% if request.form.education == "12th" %}selected{% endif %}>12th Grade High School</option>
+                                        <option value="HS-grad" {% if request.form.education == "HS-grad" %}selected{% endif %}>High School</option>
+                                        <option value="Some-college" {% if request.form.education == "Some-college" %}selected{% endif %}>Some College</option>
+                                        <option value="Assoc-acdm" {% if request.form.education == "Assoc-acdm" %}selected{% endif %}>Associate's Academic</option>
+                                        <option value="Assoc-voc" {% if request.form.education == "Assoc-voc" %}selected{% endif %}>Associate's Vocational</option>
+                                        <option value="Bachelors" {% if request.form.education == "Bachelors" %}selected{% endif %}>Bachelor's</option>
+                                        <option value="Masters" {% if request.form.education == "Masters" %}selected{% endif %}>Master's</option>
+                                        <option value="Prof-school" {% if request.form.education == "Prof-school" %}selected{% endif %}>Professional School</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="maritalFilter">Marital Status</label>
+                                    <select id="maritalFilter" name="marital_status" class="form-control" required>
+                                        <option value="" {% if not request.form.marital_status %}selected{% endif %}>Select Marital Status</option>
+                                        <option value="Never-married" {% if request.form.marital_status == "Never-married" %}selected{% endif %}>Never-Married</option>
+                                        <option value="Married-civ-spouse" {% if request.form.marital_status == "Married-civ-spouse" %}selected{% endif %}>Married-Civ-Spouse</option>
+                                        <option value="Married-AF-spouse" {% if request.form.marital_status == "Married-AF-spouse" %}selected{% endif %}>Married-AF-Spouse</option>
+                                        <option value="Separated" {% if request.form.marital_status == "Separated" %}selected{% endif %}>Separated</option>
+                                        <option value="Divorced" {% if request.form.marital_status == "Divorced" %}selected{% endif %}>Divorced</option>
+                                        <option value="Widowed" {% if request.form.marital_status == "Widowed" %}selected{% endif %}>Widowed</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Predict</button>
+                                <button type="button" class="btn btn-secondary" onclick="window.location.href='/'">Clear Filters</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="col-md-6 d-flex align-items-center justify-content-center">
+                        {% if prediction_text %}
+                        <div class="prediction-result">
+                            <h3>{{ prediction_text }}</h3>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Charts Section -->
+        <section id="charts" class="chart-container">
+            <div class="container">
+                <div class="section-title">
+                    <h2>Income Distribution Charts</h2>
+                </div>
+                <div class="row">
+                    <div id="chart1" class="col-md-6 chart"></div>
+                    <div id="chart3" class="col-md-6 chart"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Second Chart Container without background color -->
+        <section id="charts-2" class="chart-container no-bg">
+            <div class="container">
+                <div class="section-title">
+                    <h2>Hours Worked vs Age Chart</h2>
+                </div>
+                <div id="chart2" class="chart"></div>
+            </div>
+        </section>
+
+        <!-- Info Section -->
+        <section class="call-to-action">
+            <div class="container">
+                <div class="text-center">
+                    <h3>Info</h3>
+                    <p>This dataset is from 1994 and measures income levels above and below $50,000.
+                    Adjusted for inflation, this amount would be approximately $102,784 today. In other words, the dataset helps to identify who would make a six-figure salary in today's terms.
+                    In 1994, the median household income in the U.S. was around $32,264, while in 2022 it had risen to approximately $70,784. This increase reflects changes in the cost of living and overall economic growth.
+                    For context, if we consider the median incomes, a household making $59,000 in 1994 would be comparable to one making around $79,000 today, accounting for inflation and cost of living adjustments.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Embedded Tableau Charts -->
+        <section id="tableau-charts" class="embed-container">
+            <div class='tableauPlaceholder' id='viz1717447731684' style='position: relative'>
+                <noscript>
+                    <a href='#'>
+                        <img alt='Sheet 13' src='https://public.tableau.com/static/images/In/Income_prediction4/Sheet13/1_rss.png' style='border: none;' />
+                    </a>
+                </noscript>
+                <object class='tableauViz' style='display:none; width:100%; height:600px;'>
+                    <param name='host_url' value='https%3A%2F%2Fpublic.tableau.com%2F' />
+                    <param name='embed_code_version' value='3' />
+                    <param name='site_root' value='' />
+                    <param name='name' value='Income_prediction4/Sheet13' />
+                    <param name='tabs' value='no' />
+                    <param name='toolbar' value='yes' />
+                    <param name='static_image' value='https://public.tableau.com/static/images/In/Income_prediction4/Sheet13/1.png' />
+                    <param name='animate_transition' value='yes' />
+                    <param name='display_static_image' value='yes' />
+                    <param name='display_spinner' value='yes' />
+                    <param name='display_overlay' value='yes' />
+                    <param name='display_count' value='yes' />
+                    <param name='language' value='en-US' />
+                </object>
+            </div>
+            <script type='text/javascript'>
+                var divElement = document.getElementById('viz1717447731684');
+                var vizElement = divElement.getElementsByTagName('object')[0];
+                vizElement.style.width = '100%';
+                vizElement.style.height = '600px';
+                var scriptElement = document.createElement('script');
+                scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
+                vizElement.parentNode.insertBefore(scriptElement, vizElement);
+            </script>
+        </section>
+
+        <!-- New Tableau Container -->
+        <section id="tableau-charts-2" class="embed-container">
+            <div class='tableauPlaceholder' id='viz1717452107214' style='position: relative'>
+                <noscript>
+                    <a href='#'>
+                        <img alt='Dashboard 1' src='https://public.tableau.com/static/images/9N/9NK4F8X54/1_rss.png' style='border: none;' />
+                    </a>
+                </noscript>
+                <object class='tableauViz' style='display:none; width:100%; height:600px;'>
+                    <param name='host_url' value='https%3A%2F%2Fpublic.tableau.com%2F' />
+                    <param name='embed_code_version' value='3' />
+                    <param name='path' value='shared/9NK4F8X54' />
+                    <param name='toolbar' value='yes' />
+                    <param name='static_image' value='https://public.tableau.com/static/images/9N/9NK4F8X54/1.png' />
+                    <param name='animate_transition' value='yes' />
+                    <param name='display_static_image' value='yes' />
+                    <param name='display_spinner' value='yes' />
+                    <param name='display_overlay' value='yes' />
+                    <param name='display_count' value='yes' />
+                    <param name='language' value='en-US' />
+                </object>
+            </div>
+            <script type='text/javascript'>
+                var divElement = document.getElementById('viz1717452107214');
+                var vizElement = divElement.getElementsByTagName('object')[0];
+                if (divElement.offsetWidth > 800) {
+                    vizElement.style.width = '100%';
+                    vizElement.style.height = '887px';
+                } else if (divElement.offsetWidth > 500) {
+                    vizElement.style.minWidth = '420px';
+                    vizElement.style.maxWidth = '650px';
+                    vizElement.style.width = '100%';
+                    vizElement.style.minHeight = '400px';
+                    vizElement.style.maxHeight = '600px';
+                    vizElement.style.height = (divElement.offsetWidth * 0.75) + 'px';
+                } else {
+                    vizElement.style.width = '100%';
+                    vizElement.style.height = '400px';
+                }
+                var scriptElement = document.createElement('script');
+                scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
+                vizElement.parentNode.insertBefore(scriptElement, vizElement);
+            </script>
+        </section>
+
+        <!-- Embedded FRED Chart -->
+        <div class="embed-container">
+            <div class="text-center">
+                <h3>Real Median Household Income in the United States</h3>
+            <iframe src="https://fred.stlouisfed.org/graph/graph-landing.php?g=1orvF&width=370&height=700" scrolling="no" frameborder="0" style="overflow:hidden;height:700px;" allowTransparency="true" loading="lazy"></iframe>
+        </div>
+        <script src="https://fred.stlouisfed.org/graph/js/embed.js" type="text/javascript"></script>
+
+        <!-- JavaScript to handle chart rendering -->
+        <script src="{{ url_for('static', filename='js/chart.js') }}"></script>
+    </main>
+</body>
+
+</html>
